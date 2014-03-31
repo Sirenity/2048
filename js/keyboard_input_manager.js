@@ -51,8 +51,10 @@ KeyboardInputManager.prototype.listen = function () {
 
   // Respond to direction keys
   document.addEventListener("keydown", function (event) {
+    // Boolean checkers to determine if modifier was pressed
     var modifiers = event.altKey || event.ctrlKey || event.metaKey ||
                     event.shiftKey;
+    // Beware: Deprecated event
     var mapped    = map[event.which];
 
     if (!modifiers) {

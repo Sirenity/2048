@@ -49,4 +49,6 @@ Understanding how the game works:
 	* Changing the look of a tile using classes
 	* Updating the score
 
-8. **keyboard_input_manager.js** :: 
+8. **keyboard_input_manager.js** :: Handles the listening to the inputs for movement
+
+	* 
