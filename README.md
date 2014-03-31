@@ -1,32 +1,48 @@
-# 2048
-A small clone of [1024](https://play.google.com/store/apps/details?id=com.veewo.a1024), based on [Saming's 2048](http://saming.fr/p/2048/) (also a clone).
+# 2048 AI
 
-Made just for fun. [Play it here!](http://gabrielecirulli.github.io/2048/)
+Original AI for the game [2048](https://github.com/gabrielecirulli/2048).
 
-### Contributions
+See my new AI for this game here --> [2048AI](https://github.com/sirenity/2048)
 
- - [TimPetricola](https://github.com/TimPetricola) added best score storage
- - [chrisprice](https://github.com/chrisprice) added custom code for swipe handling on mobile
- - [elektryk](https://github.com/elektryk) made swipes work on Windows Phone
- - [mgarciaisaia](https://github.com/mgarciaisaia) addes support for Android 2.3
+This fork is focused on the implementation of several AI methods geared towards effectively teaching these various methods. Below is a list of the AI methods I plan to implement:
 
-Many thanks to [rayhaanj](https://github.com/rayhaanj), [Mechazawa](https://github.com/Mechazawa), [grant](https://github.com/grant), [remram44](https://github.com/remram44) and [ghoullier](https://github.com/ghoullier) for the many other good contributions.
+    1. A* Search
+    2. Alpha-Beta Pruning
+    3. Stochastic Hill Climbing
+    4. Greedy Search
 
-### Screenshot
+I advise the community to help with implementing more AI programs and perhaps involving their own kinds of heuristics to help generate new methodologies for Game Theory.
 
-<p align="center">
-  <img src="http://pictures.gabrielecirulli.com/2048-20140309-234100.png" alt="Screenshot"/>
-</p>
+Understanding how the game works:
 
-That screenshot is fake, by the way. I never reached 2048 :smile:
+### The Key Files
+1. **animframe_polyfill.js** :: This is used with Firefox or Chrome to: 
+	a. preload animation frames
 
-## Contributing
-Changes and improvements are more than welcome! Feel free to fork and open a pull request. Please make your changes in a specific branch and request to pull into `master`! If you can, please make sure the game fully works before sending the PR, as that will help speed up the process.
+2. **application.js** :: Prevents game from glitching. Calls the GameManager to begin
 
-You can find the same information in the [contributing guide.](https://github.com/gabrielecirulli/2048/blob/master/CONTRIBUTING.md)
+3. **bind_polyfill.js** :: ???
 
-## License
-2048 is licensed under the [MIT license.](https://github.com/gabrielecirulli/2048/blob/master/LICENSE.txt)
+4. **classlist_polyfill.js** :: ???
 
-## Donations
-I made this in my spare time, and it's hosted on GitHub (which means I don't have any hosting costs), but if you enjoyed the game and feel like buying me coffee, you can donate at my BTC address: `1Ec6onfsQmoP9kkL3zkpB6c5sA4PVcXU2i`. Thank you very much!
+5. **game_manager.js** :: The Core Game Manager contains methods for:
+	a. Beginning/Terminating/Restarting a game
+	b. Setting up the grid
+	c. Holds 4 parameters => Grid Size, Input Manager, Actuator, Storage Manager
+	d. Adding a tile at random
+	e. Serializing the Grid
+	f. Performing movement
+	g. Merging tiles
+	h. Detecting available moves/game score
+	i. Saving game progress
+
+6. **grid.js** :: Contains various funcitions for manipulating the game grid
+	a. Checking cells
+	b. Insertions and removal of tiles
+
+7. **html_actuator.js** :: Contains various functions for interface, tile mechanics and scoring
+	a. Adding a tile
+	b. Changing the look of a tile using classes
+	c. Updating the score
+
+8. **keyboard_input_manager.js** :: 
