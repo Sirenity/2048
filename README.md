@@ -28,15 +28,15 @@ Understanding how the game works:
 
 5. **game_manager.js** :: The Core Game Manager contains methods for:
 	
-	a. Beginning/Terminating/Restarting a game
-	b. Setting up the grid
-	c. Holds 4 parameters => Grid Size, Input Manager, Actuator, Storage Manager
-	d. Adding a tile at random
-	e. Serializing the Grid
-	f. Performing movement
-	g. Merging tiles
-	h. Detecting available moves/game score
-	i. Saving game progress
+    a. Beginning/Terminating/Restarting a game
+    b. Setting up the grid
+    c. Holds 4 parameters => Grid Size, Input Manager, Actuator, Storage Manager
+    d. Adding a tile at random
+    e. Serializing the Grid
+    f. Performing movement
+    g. Merging tiles
+    h. Detecting available moves/game score
+    i. Saving game progress
 
 6. **grid.js** :: Contains various funcitions for manipulating the game grid
 	
