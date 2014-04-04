@@ -64,10 +64,4 @@ Understanding how the game works:
 
 ### Implementing Custom Tile Movements
 
-1. How to trigger a keyboard event using jQuery:
-
-```javascript
-$('a').on('click', function () {
-    $(document).trigger('keydown', [ "0".charCodeAt(0) ]);
-});
-```
+Within the game manager, simple call the move function with the specified movement direction. For movement directions, see the translate function in ai.js

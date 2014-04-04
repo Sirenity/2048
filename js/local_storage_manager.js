@@ -1,3 +1,4 @@
+// Added code from 2048 AI
 window.fakeStorage = {
   _data: {},
 
@@ -18,6 +19,7 @@ window.fakeStorage = {
   }
 };
 
+// Standard code from original 2048 Game
 function LocalStorageManager() {
   this.bestScoreKey     = "bestScore";
   this.gameStateKey     = "gameState";
