@@ -51,4 +51,23 @@ Understanding how the game works:
 
 8. **keyboard_input_manager.js** :: Handles the listening to the inputs for movement
 
-	* 
+	* Attaches event listeners for button events (Restart,KeepPlaying) 
+
+7. **local_storage_manager.js** :: Saves game state and best score in local storage
+
+8. **tile.js** :: Class object for the tiles
+	
+	* Save/Update position
+	* Serialize (JSON)
+
+9. **application.js** :: requests an animation frame and generates a new game manager with Keyboard Manager, Actuator, and Local Storage 
+
+### Implementing Custom Tile Movements
+
+1. How to trigger a keyboard event using jQuery:
+
+```javascript
+$('a').on('click', function () {
+    $(document).trigger('keydown', [ "0".charCodeAt(0) ]);
+});
+```
