@@ -7,8 +7,6 @@ AI.prototype.eval = function() {
   var emptyCells = this.grid.availableCells().length;
 
   var smoothWeight = 0.1,
-      //monoWeight   = 0.0,
-      //islandWeight = 0.0,
       mono2Weight  = 1.0,
       emptyWeight  = 2.7,
       maxWeight    = 1.0;
@@ -33,7 +31,9 @@ AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
   if (this.grid.playerTurn) {
     bestScore = alpha;
     for (var direction in [0, 1, 2, 3]) {
+      // Clones the grid
       var newGrid = this.grid.clone();
+      // does a move in all 4 directions
       if (newGrid.move(direction).moved) {
         positions++;
         if (newGrid.isWin()) {
@@ -83,34 +83,6 @@ AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
       }
     }
 
-
-
-    
-    /*
-    var candidates = [];
-    var cells = this.grid.availableCells();
-    var scores = {2:[], 4:[]};
-    var i = 0;
-    for (var value in scores) {
-      for (var i=0; i<cells.length; i++) {
-        scores[value].push(0);
-        var cell = cells[i];
-        for (var direction in [0,1,2,3]) {
-          var vector = this.grid.getVector(direction);
-          var target = this.grid.findFarthestPosition(cell, vector);
-          if (this.grid.cellOccupied(target.next)) {
-            var targetValue = this.grid.cells[target.next.x][target.next.y].value; 
-            if (targetValue == value) {
-              scores[value][i] -= 4;
-            } else {
-              scores[value][i] += Math.log(value) / Math.log(2);
-            }
-          }
-        }
-      }
-    }
-    //*/
-
     // now just pick out the most annoying moves
     var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
     for (var value in scores) { // 2 and 4
@@ -143,59 +115,6 @@ AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
         return { move: null, score: alpha, positions: positions, cutoffs: cutoffs };
       }
     }
-    //*/
-        
-    /*
-    for (var samples=0; samples<4; samples++) {
-      var newGrid = this.grid.clone();
-      newGrid.computerMove();
-      newAI = new AI(newGrid);
-      result = newAI.search(depth, alpha, bestScore, positions, cutoffs);
-      positions = result.positions;
-      cutoffs = result.cutoffs;
-
-      if (result.score < bestScore) {
-        bestScore = result.score;
-      }
-      if (bestScore < alpha) {
-        //console.log('cutoff')
-        cutoffs++;
-        return { move: bestMove, score: bestScore, positions: positions, cutoffs: cutoffs };
-      }
-
-    }
-    //*/
-    /*
-    for (var x=0; x<4; x++) {
-      for (var y=0; y<4; y++) {
-        var position = {x:x, y:y};
-        if (this.grid.cellAvailable(position)) {
-          for (var value in [2, 4]) {
-          //for (var value in [2]) {
-            var newGrid = this.grid.clone();
-            var tile = new Tile(position, value);
-            newGrid.insertTile(tile);
-            newGrid.playerTurn = true;
-            positions++;
-            newAI = new AI(newGrid);
-            //console.log('inserted tile, players turn is', newGrid.playerTurn);
-            result = newAI.search(depth, alpha, bestScore, positions, cutoffs);
-            positions = result.positions;
-            cutoffs = result.cutoffs;
-
-            if (result.score < bestScore) {
-              bestScore = result.score;
-            }
-            if (bestScore < alpha) {
-              //console.log('cutoff')
-              cutoffs++;
-              return { move: bestMove, score: bestScore, positions: positions, cutoffs: cutoffs };
-            }
-          }
-        }
-      }
-    }
-    //*/
   }
 
   return { move: bestMove, score: bestScore, positions: positions, cutoffs: cutoffs };
@@ -211,6 +130,7 @@ AI.prototype.iterativeDeep = function() {
   var start = (new Date()).getTime();
   var depth = 0;
   var best;
+
   do {
     var newBest = this.search(depth, -10000, 10000, 0 ,0);
     if (newBest.move == -1) {
@@ -221,9 +141,7 @@ AI.prototype.iterativeDeep = function() {
     }
     depth++;
   } while ( (new Date()).getTime() - start < minSearchTime);
-  //console.log('depth', --depth);
-  //console.log(this.translate(best.move));
-  //console.log(best);
+
   return best
 }
 
