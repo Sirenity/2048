@@ -3,69 +3,65 @@ function AI(grid) {
 }
 
 // static evaluation function
-AI.prototype.eval = function() {
-  var emptyCells = this.grid.availableCells().length;
+AI.prototype.eval = function(direction) {
+  var maxWeight = 0.8,
+      mergeWeight = 2.0,
+      smoothWeight = 0.1,
+      cellsAvailableWeight = 2.0;
 
-  var smoothWeight = 0.1,
-      mono2Weight  = 1.0,
-      emptyWeight  = 2.7,
-      maxWeight    = 1.0;
-
-  return this.grid.smoothness() * smoothWeight
-       //+ this.grid.monotonicity() * monoWeight
-       //- this.grid.islands() * islandWeight
-       + this.grid.monotonicity2() * mono2Weight
-       + Math.log(emptyCells) * emptyWeight
-       + this.grid.maxValue() * maxWeight;
+  return maxWeight * this.grid.maxValue() + 
+         mergeWeight * this.grid.tileMatchesAvailable() +
+         smoothWeight * this.grid.smoothness() + 
+         cellsAvailableWeight * this.grid.cellsAvailable();
 };
 
 //AI.prototype.cache = {}
 
 // alpha-beta depth first search
-AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
+AI.prototype.search = function(depth, bestScore) {
+  var result;
   var bestScore;
   var bestMove = -1;
-  var result;
 
   // the maxing player
   if (this.grid.playerTurn) {
-    bestScore = alpha;
+    // The best score is the score of the current grid
+    bestScore = 0;
+
+    // Perform the movements on a cloned grid
+    // If better, that movement is the best selected move
     for (var direction in [0, 1, 2, 3]) {
       // Clones the grid
       var newGrid = this.grid.clone();
       // does a move in all 4 directions
       if (newGrid.move(direction).moved) {
-        positions++;
         if (newGrid.isWin()) {
-          return { move: direction, score: 10000, positions: positions, cutoffs: cutoffs };
+          return { move: direction, score: this.eval() };
         }
+        
         var newAI = new AI(newGrid);
+        var score = newAI.eval();
+
+        if(score > bestScore) {
+          bestScore = score;
+        }
 
         if (depth == 0) {
           result = { move: direction, score: newAI.eval() };
         } else {
-          result = newAI.search(depth-1, bestScore, beta, positions, cutoffs);
-          if (result.score > 9900) { // win
-            result.score--; // to slightly penalize higher depth from win
-          }
-          positions = result.positions;
-          cutoffs = result.cutoffs;
+          result = newAI.search(depth-1, bestScore);
         }
 
-        if (result.score > bestScore) {
+        if (result.score >= bestScore) {
           bestScore = result.score;
           bestMove = direction;
         }
-        if (bestScore > beta) {
-          cutoffs++
-          return { move: bestMove, score: beta, positions: positions, cutoffs: cutoffs };
-        }
       }
     }
-  }
-
-  else { // computer's turn, we'll do heavy pruning to keep the branching factor low
-    bestScore = beta;
+  } else {
+    // We need to assume all cases in where the opponent can place a tile
+    // And from those possible moves, determine the best move to counteract it
+    bestScore = 0;
 
     // try a 2 and 4 in each cell and measure how annoying it is
     // with metrics from eval
@@ -78,7 +74,7 @@ AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
         var cell = cells[i];
         var tile = new Tile(cell, parseInt(value, 10));
         this.grid.insertTile(tile);
-        scores[value][i] = -this.grid.smoothness() + this.grid.islands();
+        scores[value][i] = -this.grid.smoothness();
         this.grid.removeTile(cell);
       }
     }
@@ -101,23 +97,16 @@ AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
       var tile = new Tile(position, value);
       newGrid.insertTile(tile);
       newGrid.playerTurn = true;
-      positions++;
       newAI = new AI(newGrid);
-      result = newAI.search(depth, alpha, bestScore, positions, cutoffs);
-      positions = result.positions;
-      cutoffs = result.cutoffs;
+      result = newAI.search(depth, bestScore);
 
       if (result.score < bestScore) {
         bestScore = result.score;
       }
-      if (bestScore < alpha) {
-        cutoffs++;
-        return { move: null, score: alpha, positions: positions, cutoffs: cutoffs };
-      }
     }
   }
 
-  return { move: bestMove, score: bestScore, positions: positions, cutoffs: cutoffs };
+  return { move: bestMove, score: bestScore };
 }
 
 // performs a search and returns the best move
@@ -132,9 +121,8 @@ AI.prototype.iterativeDeep = function() {
   var best;
 
   do {
-    var newBest = this.search(depth, -10000, 10000, 0 ,0);
+    var newBest = this.search(depth, 0);
     if (newBest.move == -1) {
-      //console.log('BREAKING EARLY');
       break;
     } else {
       best = newBest;
