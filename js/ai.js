@@ -4,28 +4,23 @@ function AI(grid) {
 
 // static evaluation function
 AI.prototype.eval = function(direction) {
-  var maxWeight = 0.8,
+  var maxWeight = 0.5,
       mergeWeight = 2.0,
-      smoothWeight = 0.1,
-      cellsAvailableWeight = 2.0;
+      smoothWeight = 0.2,
+      cellsAvailableWeight = 0.5;
 
   return maxWeight * this.grid.maxValue() + 
-         mergeWeight * this.grid.tileMatchesAvailable() +
+         mergeWeight * this.grid.tileMatchesAvailable() -
          smoothWeight * this.grid.smoothness() + 
          cellsAvailableWeight * this.grid.cellsAvailable();
 };
 
-//AI.prototype.cache = {}
-
-// alpha-beta depth first search
 AI.prototype.search = function(depth, bestScore) {
   var result;
   var bestScore;
   var bestMove = -1;
 
-  // the maxing player
   if (this.grid.playerTurn) {
-    // The best score is the score of the current grid
     bestScore = 0;
 
     // Perform the movements on a cloned grid
@@ -40,7 +35,8 @@ AI.prototype.search = function(depth, bestScore) {
         }
         
         var newAI = new AI(newGrid);
-        var score = newAI.eval();
+        // Change the eval function to detect in the given direction
+        var score = newAI.eval(direction);
 
         if(score > bestScore) {
           bestScore = score;
@@ -58,53 +54,7 @@ AI.prototype.search = function(depth, bestScore) {
         }
       }
     }
-  } else {
-    // We need to assume all cases in where the opponent can place a tile
-    // And from those possible moves, determine the best move to counteract it
-    bestScore = 0;
-
-    // try a 2 and 4 in each cell and measure how annoying it is
-    // with metrics from eval
-    var candidates = [];
-    var cells = this.grid.availableCells();
-    var scores = { 2: [], 4: [] };
-    for (var value in scores) {
-      for (var i in cells) {
-        scores[value].push(null);
-        var cell = cells[i];
-        var tile = new Tile(cell, parseInt(value, 10));
-        this.grid.insertTile(tile);
-        scores[value][i] = -this.grid.smoothness();
-        this.grid.removeTile(cell);
-      }
-    }
-
-    // now just pick out the most annoying moves
-    var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
-    for (var value in scores) { // 2 and 4
-      for (var i=0; i<scores[value].length; i++) {
-        if (scores[value][i] == maxScore) {
-          candidates.push( { position: cells[i], value: parseInt(value, 10) } );
-        }
-      }
-    }
-
-    // search on each candidate
-    for (var i=0; i<candidates.length; i++) {
-      var position = candidates[i].position;
-      var value = candidates[i].value;
-      var newGrid = this.grid.clone();
-      var tile = new Tile(position, value);
-      newGrid.insertTile(tile);
-      newGrid.playerTurn = true;
-      newAI = new AI(newGrid);
-      result = newAI.search(depth, bestScore);
-
-      if (result.score < bestScore) {
-        bestScore = result.score;
-      }
-    }
-  }
+  } 
 
   return { move: bestMove, score: bestScore };
 }
@@ -129,7 +79,6 @@ AI.prototype.iterativeDeep = function() {
     }
     depth++;
   } while ( (new Date()).getTime() - start < minSearchTime);
-
   return best
 }
 

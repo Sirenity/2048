@@ -329,31 +329,33 @@ Grid.prototype.toString = function() {
 
 //####################################################################//
 
-// Grid.prototype.gridMatchesPossible = function(direction) {
-//   // Function returns the # of merges possible within the given direction
-//   var self = this;
-//   var tile;
-//   var matches = 0;
+Grid.prototype.gridMatchesPossible = function(direction) {
+  var self = this;
+  var matches = 0;
+  var tile;
 
-//   for (var x = 0; x < this.size; x++) {
-//     for (var y = 0; y < this.size; y++) {
-//       tile = this.cellContent({ x: x, y: y });
+  for (var x = 0; x < this.size; x++) {
+    for (var y = 0; y < this.size; y++) {
+      tile = this.cellContent({ x: x, y: y });
 
-//       if (tile) {
-//         var vector = self.getVector(direction);
-//         var cell   = { x: x + vector.x, y: y + vector.y };
+      if (tile != null) {
+        var vector = self.getVector(direction);
 
-//         var other  = self.cellContent(cell);
+        if(vector) {
+          var cell   = { x: x + vector.x, y: y + vector.y };
+          var other  = self.cellContent(cell);
+          if (other && other.value === tile.value) {
+            return matches++;
+          }
+        } else {
+          continue;
+        }
+      }
+    }
+  }
 
-//         if (other && other.value === tile.value) {
-//           matches++;
-//         }
-//       }
-//     }
-//   }
-
-//   return matches;
-// }
+  return matches;
+}
 
 Grid.prototype.smoothness = function() {
   var smoothness = 0;
@@ -370,13 +372,13 @@ Grid.prototype.smoothness = function() {
           if (this.cellOccupied(targetCell)) {
             var target = this.cellContent(targetCell);
             var targetValue = target.value;
-            smoothness -= Math.abs(cellValue - targetValue);
+            smoothness += Math.abs(cellValue - targetValue);
           }
         }
       }
     }
   }
-
+  console.log(smoothness);
   return smoothness;
 }
 
