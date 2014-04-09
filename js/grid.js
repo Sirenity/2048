@@ -327,257 +327,60 @@ Grid.prototype.toString = function() {
   return string;
 }
 
-// All further code added for 2048 AI
+//####################################################################//
 
-<<<<<<< HEAD
-Grid.prototype.gridMatchesPossible = function(direction) {
-  var self = this;
-  var matches = 0;
-  var tile;
+// Grid.prototype.gridMatchesPossible = function(direction) {
+//   // Function returns the # of merges possible within the given direction
+//   var self = this;
+//   var tile;
+//   var matches = 0;
 
-  for (var x = 0; x < this.size; x++) {
-    for (var y = 0; y < this.size; y++) {
-      tile = this.cellContent({ x: x, y: y });
+//   for (var x = 0; x < this.size; x++) {
+//     for (var y = 0; y < this.size; y++) {
+//       tile = this.cellContent({ x: x, y: y });
 
-      if (tile != null) {
-        var vector = self.getVector(direction);
+//       if (tile) {
+//         var vector = self.getVector(direction);
+//         var cell   = { x: x + vector.x, y: y + vector.y };
 
-        if(vector) {
-          var cell   = { x: x + vector.x, y: y + vector.y };
-          var other  = self.cellContent(cell);
-          if (other && other.value === tile.value) {
-            return matches++;
-          }
-        } else {
-          continue;
-        }
-      }
-    }
-  }
+//         var other  = self.cellContent(cell);
 
-  return matches;
-}
-=======
-// counts the number of isolated groups. 
-Grid.prototype.islands = function() {
-  var self = this;
-  var mark = function(x, y, value) {
-    if (x >= 0 && x <= 3 && y >= 0 && y <= 3 &&
-        self.cells[x][y] &&
-        self.cells[x][y].value == value &&
-        !self.cells[x][y].marked ) {
-      self.cells[x][y].marked = true;
-      
-      for (direction in [0,1,2,3]) {
-        var vector = self.getVector(direction);
-        mark(x + vector.x, y + vector.y, value);
-      }
-    }
-  }
+//         if (other && other.value === tile.value) {
+//           matches++;
+//         }
+//       }
+//     }
+//   }
 
-  var islands = 0;
+//   return matches;
+// }
 
-  for (var x=0; x<4; x++) {
-    for (var y=0; y<4; y++) {
-      if (this.cells[x][y]) {
-        this.cells[x][y].marked = false
-      }
-    }
-  }
-  for (var x=0; x<4; x++) {
-    for (var y=0; y<4; y++) {
-      if (this.cells[x][y] &&
-          !this.cells[x][y].marked) {
-        islands++;
-        mark({ x:x, y:y }, this.cells[x][y].value);
-      }
-    }
-  }
-  
-  return islands;
-}
-
->>>>>>> parent of 77dc362... pushing progress
-
-// measures how smooth the grid is (as if the values of the pieces
-// were interpreted as elevations). Sums of the pairwise difference
-// between neighboring tiles (in log space, so it represents the
-// number of merges that need to happen before they can merge). 
-// Note that the pieces can be distant
 Grid.prototype.smoothness = function() {
   var smoothness = 0;
-  for (var x=0; x<4; x++) {
-    for (var y=0; y<4; y++) {
-      if ( this.cellOccupied( this.indexes[x][y] )) {
-        var value = Math.log(this.cellContent( this.indexes[x][y] ).value) / Math.log(2);
-        for (var direction=1; direction<=2; direction++) {
+
+  for(var x=0; x<4; x++) {
+    for(var y=0; y<4; y++) {
+      if(this.cellOccupied(this.indexes[x][y])) {
+        var cellValue = this.cellContent( this.indexes[x][y] ).value;
+        // Compute the elevation of this cell to is right and down most neighbors
+        for (var direction in [1,2]) {
           var vector = this.getVector(direction);
           var targetCell = this.findFarthestPosition(this.indexes[x][y], vector).next;
 
           if (this.cellOccupied(targetCell)) {
             var target = this.cellContent(targetCell);
-<<<<<<< HEAD
             var targetValue = target.value;
-            smoothness += Math.abs(cellValue - targetValue);
-=======
-            var targetValue = Math.log(target.value) / Math.log(2);
-            smoothness -= Math.abs(value - targetValue);
->>>>>>> parent of 77dc362... pushing progress
+            smoothness -= Math.abs(cellValue - targetValue);
           }
         }
       }
     }
   }
-<<<<<<< HEAD
-  console.log(smoothness);
-=======
->>>>>>> parent of 77dc362... pushing progress
+
   return smoothness;
 }
 
-Grid.prototype.monotonicity = function() {
-  var self = this;
-  var marked = [];
-  var queued = [];
-  var highestValue = 0;
-  var highestCell = {x:0, y:0};
-  for (var x=0; x<4; x++) {
-    marked.push([]);
-    queued.push([]);
-    for (var y=0; y<4; y++) {
-      marked[x].push(false);
-      queued[x].push(false);
-      if (this.cells[x][y] &&
-          this.cells[x][y].value > highestValue) {
-        highestValue = this.cells[x][y].value;
-        highestCell.x = x;
-        highestCell.y = y;
-      }
-    }
-  }
-
-  increases = 0;
-  cellQueue = [highestCell];
-  queued[highestCell.x][highestCell.y] = true;
-  markList = [highestCell];
-  markAfter = 1; // only mark after all queued moves are done, as if searching in parallel
-
-  var markAndScore = function(cell) {
-    markList.push(cell);
-    var value;
-    if (self.cellOccupied(cell)) {
-      value = Math.log(self.cellContent(cell).value) / Math.log(2);
-    } else {
-      value = 0;
-    }
-    for (direction in [0,1,2,3]) {
-      var vector = self.getVector(direction);
-      var target = { x: cell.x + vector.x, y: cell.y+vector.y }
-      if (self.withinBounds(target) && !marked[target.x][target.y]) {
-        if ( self.cellOccupied(target) ) {
-          targetValue = Math.log(self.cellContent(target).value ) / Math.log(2);
-          if ( targetValue > value ) {
-            //console.log(cell, value, target, targetValue);
-            increases += targetValue - value;
-          }
-        } 
-        if (!queued[target.x][target.y]) {
-          cellQueue.push(target);
-          queued[target.x][target.y] = true;
-        }
-      }
-    }
-    if (markAfter == 0) {
-      while (markList.length > 0) {
-        var cel = markList.pop();
-        marked[cel.x][cel.y] = true;
-      }
-      markAfter = cellQueue.length;
-    }
-  }
-
-  while (cellQueue.length > 0) {
-    markAfter--;
-    markAndScore(cellQueue.shift())
-  }
-
-  return -increases;
-}
-
-// measures how monotonic the grid is. This means the values of the tiles are strictly increasing
-// or decreasing in both the left/right and up/down directions
-Grid.prototype.monotonicity2 = function() {
-  // scores for all four directions
-  var totals = [0, 0, 0, 0];
-
-  // up/down direction
-  for (var x=0; x<4; x++) {
-    var current = 0;
-    var next = current+1;
-    while ( next<4 ) {
-      while ( next<4 && !this.cellOccupied( this.indexes[x][next] )) {
-        next++;
-      }
-      if (next>=4) { next--; }
-      var currentValue = this.cellOccupied({x:x, y:current}) ?
-        Math.log(this.cellContent( this.indexes[x][current] ).value) / Math.log(2) :
-        0;
-      var nextValue = this.cellOccupied({x:x, y:next}) ?
-        Math.log(this.cellContent( this.indexes[x][next] ).value) / Math.log(2) :
-        0;
-      if (currentValue > nextValue) {
-        totals[0] += nextValue - currentValue;
-      } else if (nextValue > currentValue) {
-        totals[1] += currentValue - nextValue;
-      }
-      current = next;
-      next++;
-    }
-  }
-
-  // left/right direction
-  for (var y=0; y<4; y++) {
-    var current = 0;
-    var next = current+1;
-    while ( next<4 ) {
-      while ( next<4 && !this.cellOccupied( this.indexes[next][y] )) {
-        next++;
-      }
-      if (next>=4) { next--; }
-      var currentValue = this.cellOccupied({x:current, y:y}) ?
-        Math.log(this.cellContent( this.indexes[current][y] ).value) / Math.log(2) :
-        0;
-      var nextValue = this.cellOccupied({x:next, y:y}) ?
-        Math.log(this.cellContent( this.indexes[next][y] ).value) / Math.log(2) :
-        0;
-      if (currentValue > nextValue) {
-        totals[2] += nextValue - currentValue;
-      } else if (nextValue > currentValue) {
-        totals[3] += currentValue - nextValue;
-      }
-      current = next;
-      next++;
-    }
-  }
-
-  return Math.max(totals[0], totals[1]) + Math.max(totals[2], totals[3]);
-}
-
-Grid.prototype.maxValue = function() {
-  var max = 0;
-  for (var x=0; x<4; x++) {
-    for (var y=0; y<4; y++) {
-      if (this.cellOccupied(this.indexes[x][y])) {
-        var value = this.cellContent(this.indexes[x][y]).value;
-        if (value > max) {
-          max = value;
-        }
-      }
-    }
-  }
-
-  return Math.log(max) / Math.log(2);
-}
+//####################################################################//
 
 // check for win
 Grid.prototype.isWin = function() {
@@ -592,4 +395,19 @@ Grid.prototype.isWin = function() {
     }
   }
   return false;
+}
+
+Grid.prototype.maxValue = function() {
+  var max = 0;
+  for (var x=0; x<4; x++) {
+    for (var y=0; y<4; y++) {
+      if (this.cellOccupied(this.indexes[x][y])) {
+        var value = this.cellContent(this.indexes[x][y]).value;
+        if (value > max) {
+          max = value;
+        }
+      }
+    }
+  }
+  return max;
 }
