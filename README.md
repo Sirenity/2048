@@ -65,9 +65,3 @@ Understanding how the game works:
 ### Implementing Custom Tile Movements
 
 Within the game manager, simple call the move function with the specified movement direction. For movement directions, see the translate function in ai.js
-
-### Algorithm for the IDA* Search
-
-#### Search depth by default is always 3
-
-1. 

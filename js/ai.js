@@ -4,20 +4,17 @@ function AI(grid) {
 
 // static evaluation function
 AI.prototype.eval = function(direction) {
-  var maxWeight = 0.8,
+  var maxWeight = 0.3,
       mergeWeight = 2.0,
       smoothWeight = 0.1,
-      cellsAvailableWeight = 2.0;
+      cellsAvailableWeight = 1.0;
 
   return maxWeight * this.grid.maxValue() + 
-         mergeWeight * this.grid.tileMatchesAvailable() +
+         mergeWeight * this.grid.tileMatchesAvailable() -
          smoothWeight * this.grid.smoothness() + 
          cellsAvailableWeight * this.grid.cellsAvailable();
 };
 
-//AI.prototype.cache = {}
-
-// alpha-beta depth first search
 AI.prototype.search = function(depth, bestScore) {
   var result;
   var bestScore;
@@ -59,51 +56,63 @@ AI.prototype.search = function(depth, bestScore) {
       }
     }
   } else {
-    // We need to assume all cases in where the opponent can place a tile
-    // And from those possible moves, determine the best move to counteract it
+    // What are we going to do on the computers turn?
+
+    // Determine all the possible moves by the AI
+    // For each move, calculate the best move to counteract
     bestScore = 0;
 
-    // try a 2 and 4 in each cell and measure how annoying it is
-    // with metrics from eval
     var candidates = [];
     var cells = this.grid.availableCells();
     var scores = { 2: [], 4: [] };
+    
+    // Determine the evaluated grid score if we were to put a 2 or a 4 in each square
     for (var value in scores) {
       for (var i in cells) {
-        scores[value].push(null);
         var cell = cells[i];
-        var tile = new Tile(cell, parseInt(value, 10));
+        var tile = new Tile(cell, parseInt(value,10));
         this.grid.insertTile(tile);
-        scores[value][i] = -this.grid.smoothness();
+        scores[value][i] = this.eval();
         this.grid.removeTile(cell);
       }
     }
 
-    // now just pick out the most annoying moves
+    // From these evaluated scores, select the tougher ones 
     var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
-    for (var value in scores) { // 2 and 4
-      for (var i=0; i<scores[value].length; i++) {
+
+    for (var value in scores) { 
+      for (var i = 0; i < scores[value].length; i++) {
         if (scores[value][i] == maxScore) {
           candidates.push( { position: cells[i], value: parseInt(value, 10) } );
         }
       }
     }
 
-    // search on each candidate
-    for (var i=0; i<candidates.length; i++) {
+    // From these candidates, lets do the same IDA* search like we did for player's turn
+    for (var i = 0; i < candidates.length; i++) {
       var position = candidates[i].position;
       var value = candidates[i].value;
+
+      // Clone the grid
       var newGrid = this.grid.clone();
-      var tile = new Tile(position, value);
+
+      // Insert the tile
+      var tile = new Tile(position, parseInt(value,10));
       newGrid.insertTile(tile);
+      // Assign the players turn for recursion
       newGrid.playerTurn = true;
+      
+      // Generate an AI based on the cloned grid
       newAI = new AI(newGrid);
+      // Determine search results with given grid
       result = newAI.search(depth, bestScore);
 
+      // Choose the best move by the computer for us to take
       if (result.score < bestScore) {
         bestScore = result.score;
       }
     }
+
   }
 
   return { move: bestMove, score: bestScore };
