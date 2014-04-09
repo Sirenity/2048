@@ -13,7 +13,7 @@ function GameManager(size, InputManager, Actuator) {
     this.actuator.showHint(best.move);
   }.bind(this));
 
-  // Binds the run button to the run function
+
   this.inputManager.on('run', function() {
     if (this.running) {
       this.running = false;

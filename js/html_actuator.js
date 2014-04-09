@@ -7,6 +7,7 @@ function HTMLActuator() {
   this.score = 0;
 }
 
+// Initializes the grid with tiles for gameplay via the use of an animation frame
 HTMLActuator.prototype.actuate = function (grid, metadata) {
   var self = this;
 
@@ -28,7 +29,7 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
   });
 };
 
-HTMLActuator.prototype.restart = function (ga) {
+HTMLActuator.prototype.restart = function () {
   if (ga) ga("send", "event", "game", "restart");
   this.clearMessage();
 };
@@ -115,28 +116,13 @@ HTMLActuator.prototype.message = function (won) {
   this.messageContainer.getElementsByTagName("p")[0].textContent = message;
 
   this.clearContainer(this.sharingContainer);
-  // this.sharingContainer.appendChild(this.scoreTweetButton());
-  // twttr.widgets.load();
+  this.sharingContainer.appendChild(this.scoreTweetButton());
+  twttr.widgets.load();
 };
 
 HTMLActuator.prototype.clearMessage = function () {
   this.messageContainer.classList.remove("game-won", "game-over");
 };
-
-// HTMLActuator.prototype.scoreTweetButton = function () {
-//   var tweet = document.createElement("a");
-//   tweet.classList.add("twitter-share-button");
-//   tweet.setAttribute("href", "https://twitter.com/share");
-//   tweet.setAttribute("data-via", "gabrielecirulli");
-//   tweet.textContent = "Tweet";
-
-//   var text = "I scored " + this.score + " points at 2048, a game where you " +
-//              "join numbers to score high! #2048game #2048ai";
-//   tweet.setAttribute("data-text", text);
-
-//   return tweet;
-// };
-
 
 HTMLActuator.prototype.showHint = function(hint) {
   document.getElementById('feedback-container').innerHTML = ['↑','→','↓','←'][hint];
