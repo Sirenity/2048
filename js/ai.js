@@ -194,7 +194,11 @@ AI.prototype.backTracking = function() {
 
 AI.prototype.recursiveBackTrack = function(queue,step) {
   step++;
+<<<<<<< HEAD
+  if(step == 20) return queue;
+=======
   if(step == 18) return queue;
+>>>>>>> parent of 76fd972... pushing progress
 
   // Grab the end of the queue
   var currentNode = queue[queue.length-1];
