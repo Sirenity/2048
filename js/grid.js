@@ -363,7 +363,7 @@ Grid.prototype.smoothness = function() {
       if(this.cellOccupied(this.indexes[x][y])) {
         var cellValue = this.cellContent( this.indexes[x][y] ).value;
         // Compute the elevation of this cell to is right and down most neighbors
-        for (var direction in [1,2]) {
+        for (var direction in [1,2,3]) {
           var vector = this.getVector(direction);
           var targetCell = this.findFarthestPosition(this.indexes[x][y], vector).next;
 
