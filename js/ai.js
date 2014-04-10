@@ -4,121 +4,125 @@ function AI(grid) {
 
 // static evaluation function
 AI.prototype.eval = function() {
-  var maxWeight = 0.4,
-  mergeWeight = 1.0,
+  var maxWeight = 1.0,
+  // mergeWeight = 0.1,
+  mono2Weight = 1.0,
   smoothWeight = 0.1,
-  cellsAvailableWeight = 4.0;
+  emptyCells = 2.7;
 
   return maxWeight * this.grid.maxValue() + 
-  mergeWeight * this.grid.tileMatchesAvailable() +
+  // mergeWeight * this.grid.tileMatchesAvailable() +
   smoothWeight * this.grid.smoothness() + 
-  cellsAvailableWeight * this.grid.cellsAvailable();
+  mono2Weight * this.grid.monotonicity2() +
+  emptyCells * Math.log(this.grid.availableCells().length);
 };
 
-AI.prototype.search = function(depth, bestScore) {
-  var result;
+// alpha-beta depth first search
+AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
   var bestScore;
   var bestMove = -1;
+  var result;
 
   // the maxing player
   if (this.grid.playerTurn) {
-    // The best score is the score of the current grid
-    bestScore = 0;
-
-    // Perform the movements on a cloned grid
-    // If better, that movement is the best selected move
+    bestScore = alpha;
     for (var direction in [0, 1, 2, 3]) {
-      // Clones the grid
       var newGrid = this.grid.clone();
-      // does a move in all 4 directions
       if (newGrid.move(direction).moved) {
+        positions++;
         if (newGrid.isWin()) {
-          return { move: direction, score: this.eval() };
+          return { move: direction, score: 10000, positions: positions, cutoffs: cutoffs };
+        }
+        var newAI = new AI(newGrid);
+
+        if (depth == 0) {
+          result = { move: direction, score: newAI.eval() };
         } else {
-          var newAI = new AI(newGrid);
-
-          if (depth == 0) {
-            result = { move: direction, score: newAI.eval() };
-          } else {
-            result = newAI.search(depth-1, bestScore);
+          result = newAI.search(depth-1, bestScore, beta, positions, cutoffs);
+          if (result.score > 9900) { // win
+            result.score--; // to slightly penalize higher depth from win
           }
+          positions = result.positions;
+          cutoffs = result.cutoffs;
+        }
 
-          // console.log("BestScore: " + bestScore + " ResultScore:" + result.score);
-          if (result.score >= bestScore) {
-            bestScore = result.score;
-            bestMove = direction;
-          }
+        if (result.score > bestScore) {
+          bestScore = result.score;
+          bestMove = direction;
+        }
+        if (bestScore > beta) {
+          cutoffs++
+          return { move: bestMove, score: beta, positions: positions, cutoffs: cutoffs };
         }
       }
     }
-  } 
-  
-  // else {
-  //   // What are we going to do on the computers turn?
+  }
 
-  //   // Determine all the possible moves by the AI
-  //   // For each move, calculate the best move to counteract
-  //   bestScore = 0;
+  else { // computer's turn, we'll do heavy pruning to keep the branching factor low
+    bestScore = beta;
 
-  //   var candidates = [];
-  //   var cells = this.grid.availableCells();
-  //   var scores = { 2: [], 4: [] };
-    
-  //   // Determine the evaluated grid score if we were to put a 2 or a 4 in each available square
-  //   for (var value in scores) {
-  //     for (var i in cells) {
-  //       var cell = cells[i];
-  //       var tile = new Tile(cell, parseInt(value,10));
-  //       this.grid.insertTile(tile);
-  //       scores[value][i] = -this.grid.smoothness();
-  //       this.grid.removeTile(cell);
-  //     }
-  //   }
+    // try a 2 and 4 in each cell and measure how annoying it is
+    // with metrics from eval
+    var candidates = [];
+    var cells = this.grid.availableCells();
+    var scores = { 2: [], 4: [] };
+    for (var value in scores) {
+      for (var i in cells) {
+        scores[value].push(null);
+        var cell = cells[i];
+        var tile = new Tile(cell, parseInt(value, 10));
+        this.grid.insertTile(tile);
+        scores[value][i] = -this.grid.smoothness() + this.grid.islands();
+        this.grid.removeTile(cell);
+      }
+    }
 
-  //   // From these evaluated scores, select the tougher ones 
-  //   var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
+    // now just pick out the most annoying moves
+    var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
+    for (var value in scores) { // 2 and 4
+      for (var i=0; i<scores[value].length; i++) {
+        if (scores[value][i] == maxScore) {
+          candidates.push( { position: cells[i], value: parseInt(value, 10) } );
+        }
+      }
+    }
 
-  //   for (var value in scores) { 
-  //     for (var i = 0; i < scores[value].length; i++) {
-  //       if (scores[value][i] == maxScore) {
-  //         candidates.push( { position: cells[i], value: parseInt(value, 10) } );
-  //       }
-  //     }
-  //   }
+    // search on each candidate
+    for (var i=0; i<candidates.length; i++) {
+      var position = candidates[i].position;
+      var value = candidates[i].value;
+      var newGrid = this.grid.clone();
+      var tile = new Tile(position, value);
+      newGrid.insertTile(tile);
+      newGrid.playerTurn = true;
+      positions++;
+      newAI = new AI(newGrid);
+      result = newAI.search(depth, alpha, bestScore, positions, cutoffs);
+      positions = result.positions;
+      cutoffs = result.cutoffs;
 
-  //   // From these candidates, lets do the same IDA* search like we did for player's turn
-  //   for (var i = 0; i < candidates.length; i++) {
-  //     var position = candidates[i].position;
-  //     var value = candidates[i].value;
+      if (result.score < bestScore) {
+        bestScore = result.score;
+      }
+      if (bestScore < alpha) {
+        cutoffs++;
+        return { move: null, score: alpha, positions: positions, cutoffs: cutoffs };
+      }
+    }
+  }
 
-  //     // Clone the grid
-  //     var newGrid = this.grid.clone();
-
-  //     // Insert the tile
-  //     var tile = new Tile(position, parseInt(value,10));
-  //     newGrid.insertTile(tile);
-  //     // Assign the players turn for recursion
-  //     newGrid.playerTurn = true;
-      
-  //     // Generate an AI based on the cloned grid
-  //     newAI = new AI(newGrid);
-  //     // Determine search results with given grid
-  //     result = newAI.search(depth, bestScore);
-
-  //     // Choose the best move by the computer for us to take
-  //     if (result.score > bestScore) {
-  //       bestScore = result.score;
-  //     }
-  //   }
-
-  // }
-
-  return { move: bestMove, score: bestScore };
+  return { move: bestMove, score: bestScore, positions: positions, cutoffs: cutoffs };
 }
 
 // performs a search and returns the best move
 AI.prototype.getBest = function() {
-  return this.iterativeDeep();
+  var searchType = document.getElementById('AI').value;
+
+  if(searchType === 'AB_IDA*') {
+    return this.iterativeDeep();
+  } else if(searchType === 'BackTracking') {
+    return this.backTracking();
+  }
 }
 
 // performs iterative deepening over the alpha-beta search
@@ -128,7 +132,7 @@ AI.prototype.iterativeDeep = function() {
   var best;
 
   do {
-    var newBest = this.search(depth, 0);
+    var newBest = this.search(depth, -10000, 10000, 0 ,0);
     if (newBest.move == -1) {
       break;
     } else {
@@ -140,12 +144,103 @@ AI.prototype.iterativeDeep = function() {
   return best
 }
 
-AI.prototype.translate = function(move) {
- return {
-  0: 'up',
-  1: 'right',
-  2: 'down',
-  3: 'left'
-}[move];
+AI.prototype.backTracking = function() {
+  /*    
+  Goal of BackTracking is to determine a possible route 
+  to the goal by choosing the best step at each breadth.
+
+  By using a queue, we add moves at each step. Moves are selected using the eval
+  function, according to this order of events:
+
+  1. Add best move at current step
+  2. Add random move by computer
+  3. if win() -> execute the queue on the real grid
+  4. if no more moves available, backtrack one step and determine
+     next likely move
+  5. Continue until goal is reached
+  */
+
+  var queue = [];
+
+  // For each possible direction
+  var newGrid = this.grid.clone();
+
+  var moveScores = [];
+
+  for(var direction in [0,1,2,3]) {
+    // Clone the grid
+    var cloneG = this.grid.clone();
+
+    // Make the move
+    if (cloneG.move(direction).moved) {
+      moveScores.push({ move: direction , score: cloneG.eval() });
+    }
+  }
+
+  var bestMove = -1;
+  var bestScore = 0;
+  for(var i in moveScores) {
+    if(moveScores[i].score > bestScore) {
+      bestMove = i;
+    }
+  }
+
+  queue.push({ turn: "player" , move: bestMove , grid: this.grid.clone() });
+
+  // We now have the best first move to make
+  // Begin tracking step from queue
+  return this.recursiveBackTrack(queue,0);
 }
 
+AI.prototype.recursiveBackTrack = function(queue,step) {
+  step++;
+  if(step == 18) return queue;
+
+  // Grab the end of the queue
+  var currentNode = queue[queue.length-1];
+  // Get the grid
+  var currentGrid = currentNode.grid;
+
+  if(currentGrid.isWin()) {
+    console.log("WIN FOUND");
+    return queue;
+  }
+  if(currentGrid.isGameOver()) {
+    console.log("GAME OVER FOUND");
+    // Pop the last element in the queue, try again
+    queue.pop();
+    return this.recursiveBackTrack(queue,step);
+  }
+
+  // Apply a random move by the computer but add it to the queue
+  if(currentGrid.cellsAvailable()) {
+    var randomTile = currentGrid.addRandomTile();
+    currentGrid.removeTile(randomTile);
+    queue.push({ turn: "computer" , tile: randomTile , grid: currentGrid.clone() });
+  }
+
+  var moveScores = [];
+
+  for(var direction in [0,1,2,3]) {
+    // Clone the grid
+    var cloneG = this.grid.clone();
+
+    // Make the move
+    if (cloneG.move(direction).moved) {
+      moveScores.push({ move: direction , score: cloneG.eval() });
+    }
+  }
+
+  var bestMove = -1;
+  var bestScore = 0;
+  for(var i in moveScores) {
+    if(moveScores[i].score >= bestScore) {
+      bestMove = i;
+    }
+  }
+
+  queue.push({ turn: "player" , move: bestMove , grid: this.grid.clone() });
+
+  // console.log(queue);
+  return this.recursiveBackTrack(queue,step);
+}

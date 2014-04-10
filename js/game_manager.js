@@ -67,9 +67,9 @@ GameManager.prototype.move = function(direction) {
   this.score += result.score;
 
   if (!result.won) {
-    if (result.moved) {
-      this.grid.computerMove();
-    }
+    // if (result.moved) {
+    //   this.grid.computerMove();
+    // }
   } else {
     this.won = true;
   }
@@ -85,13 +85,46 @@ GameManager.prototype.move = function(direction) {
 
 // moves continuously until game is over
 GameManager.prototype.run = function() {
+  var searchType = document.getElementById('AI').value;
   var best = this.ai.getBest();
-  this.move(best.move);
-  var timeout = animationDelay;
+
+  if(searchType === 'AB_IDA*') {
+    this.move(best.move);
+  } else if(searchType === 'BackTracking') {
+    this.executeQueue(best);
+  }
+
   if (this.running && !this.over && !this.won) {
     var self = this;
+    //Evaluate if a win is found
+    this.win = this.grid.isWin();
+
     setTimeout(function(){
       self.run();
-    }, timeout);
+    }, animationDelay);
+  }
+}
+
+GameManager.prototype.executeQueue = function(queue) {
+  var step = queue.pop();
+  if(!step) return;
+  else {
+    if(step.turn === "player") {
+      // Clone the grid and make the move
+      // If the move leads to a lower max tile, dont take it
+      var tempGrid = step.grid;
+      tempGrid.move(step.move);
+      if(tempGrid.maxValue() >= this.grid.maxValue()) {
+        if(this.grid.move(step.move).moved) {
+          this.actuate();
+        }
+      }
+    } else {
+      this.grid.insertTile(step.tile);
+    }
+    var self = this;
+    setTimeout(function() {
+      self.executeQueue(queue);
+    }, animationDelay);
   }
 }
