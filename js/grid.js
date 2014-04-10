@@ -344,13 +344,13 @@ Grid.prototype.smoothness = function() {
           if (this.cellOccupied(targetCell)) {
             var target = this.cellContent(targetCell);
             var targetValue = target.value;
-            smoothness -= Math.abs(cellValue - targetValue);
+            smoothness += Math.abs(cellValue - targetValue);
           }
         }
       }
     }
   }
-
+  console.log(smoothness);
   return smoothness;
 }
 

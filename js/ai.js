@@ -43,7 +43,7 @@ AI.prototype.search = function(depth, bestScore) {
             result = newAI.search(depth-1, bestScore);
           }
 
-          console.log("BestScore: " + bestScore + " ResultScore:" + result.score);
+          // console.log("BestScore: " + bestScore + " ResultScore:" + result.score);
           if (result.score >= bestScore) {
             bestScore = result.score;
             bestMove = direction;
@@ -53,65 +53,65 @@ AI.prototype.search = function(depth, bestScore) {
     }
   } 
   
-  // else {
-  //   // What are we going to do on the computers turn?
+  else {
+    // What are we going to do on the computers turn?
 
-  //   // Determine all the possible moves by the AI
-  //   // For each move, calculate the best move to counteract
-  //   bestScore = 0;
+    // Determine all the possible moves by the AI
+    // For each move, calculate the best move to counteract
+    bestScore = 0;
 
-  //   var candidates = [];
-  //   var cells = this.grid.availableCells();
-  //   var scores = { 2: [], 4: [] };
+    var candidates = [];
+    var cells = this.grid.availableCells();
+    var scores = { 2: [], 4: [] };
     
-  //   // Determine the evaluated grid score if we were to put a 2 or a 4 in each available square
-  //   for (var value in scores) {
-  //     for (var i in cells) {
-  //       var cell = cells[i];
-  //       var tile = new Tile(cell, parseInt(value,10));
-  //       this.grid.insertTile(tile);
-  //       scores[value][i] = -this.grid.smoothness();
-  //       this.grid.removeTile(cell);
-  //     }
-  //   }
+    // Determine the evaluated grid score if we were to put a 2 or a 4 in each available square
+    for (var value in scores) {
+      for (var i in cells) {
+        var cell = cells[i];
+        var tile = new Tile(cell, parseInt(value,10));
+        this.grid.insertTile(tile);
+        scores[value][i] = -this.grid.smoothness();
+        this.grid.removeTile(cell);
+      }
+    }
 
-  //   // From these evaluated scores, select the tougher ones 
-  //   var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
+    // From these evaluated scores, select the tougher ones 
+    var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
 
-  //   for (var value in scores) { 
-  //     for (var i = 0; i < scores[value].length; i++) {
-  //       if (scores[value][i] == maxScore) {
-  //         candidates.push( { position: cells[i], value: parseInt(value, 10) } );
-  //       }
-  //     }
-  //   }
+    for (var value in scores) { 
+      for (var i = 0; i < scores[value].length; i++) {
+        if (scores[value][i] == maxScore) {
+          candidates.push( { position: cells[i], value: parseInt(value, 10) } );
+        }
+      }
+    }
 
-  //   // From these candidates, lets do the same IDA* search like we did for player's turn
-  //   for (var i = 0; i < candidates.length; i++) {
-  //     var position = candidates[i].position;
-  //     var value = candidates[i].value;
+    // From these candidates, lets do the same IDA* search like we did for player's turn
+    for (var i = 0; i < candidates.length; i++) {
+      var position = candidates[i].position;
+      var value = candidates[i].value;
 
-  //     // Clone the grid
-  //     var newGrid = this.grid.clone();
+      // Clone the grid
+      var newGrid = this.grid.clone();
 
-  //     // Insert the tile
-  //     var tile = new Tile(position, parseInt(value,10));
-  //     newGrid.insertTile(tile);
-  //     // Assign the players turn for recursion
-  //     newGrid.playerTurn = true;
+      // Insert the tile
+      var tile = new Tile(position, parseInt(value,10));
+      newGrid.insertTile(tile);
+      // Assign the players turn for recursion
+      newGrid.playerTurn = true;
       
-  //     // Generate an AI based on the cloned grid
-  //     newAI = new AI(newGrid);
-  //     // Determine search results with given grid
-  //     result = newAI.search(depth, bestScore);
+      // Generate an AI based on the cloned grid
+      newAI = new AI(newGrid);
+      // Determine search results with given grid
+      result = newAI.search(depth, bestScore);
 
-  //     // Choose the best move by the computer for us to take
-  //     if (result.score > bestScore) {
-  //       bestScore = result.score;
-  //     }
-  //   }
+      // Choose the best move by the computer for us to take
+      if (result.score > bestScore) {
+        bestScore = result.score;
+      }
+    }
 
-  // }
+  }
 
   return { move: bestMove, score: bestScore };
 }
