@@ -11,7 +11,7 @@ AI.prototype.eval = function(direction) {
 
   return maxWeight * this.grid.maxValue() + 
   mergeWeight * this.grid.tileMatchesAvailable() +
-  smoothWeight * -this.grid.smoothness() + 
+  smoothWeight * this.grid.smoothness() + 
   cellsAvailableWeight * this.grid.cellsAvailable();
 };
 
@@ -36,11 +36,6 @@ AI.prototype.search = function(depth, bestScore) {
           return { move: direction, score: this.eval() };
         } else {
           var newAI = new AI(newGrid);
-          var score = newAI.eval();
-
-          if(score > bestScore) {
-            bestScore = score;
-          }
 
           if (depth == 0) {
             result = { move: direction, score: newAI.eval() };
@@ -48,6 +43,7 @@ AI.prototype.search = function(depth, bestScore) {
             result = newAI.search(depth-1, bestScore);
           }
 
+          console.log("BestScore: " + bestScore + " ResultScore:" + result.score);
           if (result.score >= bestScore) {
             bestScore = result.score;
             bestMove = direction;
