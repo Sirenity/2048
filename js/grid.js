@@ -219,7 +219,7 @@ Grid.prototype.move = function (direction) {
         }
 
         if (!self.positionsEqual(cell, tile)) {
-          // self.playerTurn = false;
+          self.playerTurn = false;
           //console.log('setting player turn to ', self.playerTurn);
           moved = true; // The tile moved from its original cell!
         }
