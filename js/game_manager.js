@@ -67,10 +67,14 @@ GameManager.prototype.move = function(direction) {
   var result = this.grid.move(direction);
   this.score += result.score;
 
+  var searchType = document.getElementById('AI').value;
+
   if (!result.won) {
-    // if (result.moved) {
-    //   this.grid.computerMove();
-    // }
+    if (result.moved) {
+      if(searchType === 'AB_IDA*') {
+        this.grid.computerMove();
+      }
+    }
   } else {
     this.won = true;
   }
@@ -78,9 +82,9 @@ GameManager.prototype.move = function(direction) {
   //console.log(this.grid.valueSum());
 
   // We are handling game over seperately for Backtracking
-  // if (!this.grid.movesAvailable()) {
-  //   this.over = true; // Game over!
-  // }
+  if (!this.grid.movesAvailable() && searchType === 'AB_IDA*') {
+    this.over = true; // Game over!
+  }
 
   this.actuate();
 }
@@ -90,7 +94,10 @@ GameManager.prototype.run = function() {
   var searchType = document.getElementById('AI').value;
   var best = this.ai.getBest();
 
+  var timeout = animationDelay;
+
   if(searchType === 'AB_IDA*') {
+    timeout = 100;
     this.move(best.move);
   } else if(searchType === 'BackTracking') {
     this.executeQueue(best);
@@ -103,7 +110,7 @@ GameManager.prototype.run = function() {
 
     if(this.grid.isGameOver()) {
       this.gameOverCount++;
-      if(this.gameOverCount == 8) {
+      if(this.gameOverCount == 10) {
         this.setup();
         this.gameOverCount = 0;
       }
@@ -111,7 +118,7 @@ GameManager.prototype.run = function() {
 
     setTimeout(function(){
       self.run();
-    }, animationDelay);
+    }, timeout);
   }
 }
 
