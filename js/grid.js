@@ -211,10 +211,6 @@ Grid.prototype.move = function (direction) {
             won = true;
           }
         } else {
-          //if (debug) {
-            //console.log(cell);
-            //console.log(tile);
-          //}
           self.moveTile(tile, positions.farthest);
         }
 

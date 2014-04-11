@@ -4,6 +4,7 @@ function GameManager(size, InputManager, Actuator) {
   this.actuator     = new Actuator;
 
   this.running      = false;
+  this.gameOverCount = 0;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -76,9 +77,10 @@ GameManager.prototype.move = function(direction) {
 
   //console.log(this.grid.valueSum());
 
-  if (!this.grid.movesAvailable()) {
-    this.over = true; // Game over!
-  }
+  // We are handling game over seperately for Backtracking
+  // if (!this.grid.movesAvailable()) {
+  //   this.over = true; // Game over!
+  // }
 
   this.actuate();
 }
@@ -99,6 +101,14 @@ GameManager.prototype.run = function() {
     //Evaluate if a win is found
     this.win = this.grid.isWin();
 
+    if(this.grid.isGameOver()) {
+      this.gameOverCount++;
+      if(this.gameOverCount == 8) {
+        this.setup();
+        this.gameOverCount = 0;
+      }
+    }
+
     setTimeout(function(){
       self.run();
     }, animationDelay);
@@ -114,14 +124,15 @@ GameManager.prototype.executeQueue = function(queue) {
       // If the move leads to a lower max tile, dont take it
       var tempGrid = step.grid;
       tempGrid.move(step.move);
+
       if(tempGrid.maxValue() >= this.grid.maxValue()) {
-        if(this.grid.move(step.move).moved) {
-          this.actuate();
-        }
+        this.move(step.move);
       }
+
     } else {
       this.grid.insertTile(step.tile);
     }
+
     var self = this;
     setTimeout(function() {
       self.executeQueue(queue);

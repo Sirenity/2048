@@ -194,53 +194,61 @@ AI.prototype.backTracking = function() {
 
 AI.prototype.recursiveBackTrack = function(queue,step) {
   step++;
-  if(step == 18) return queue;
+  if(step == 20) return queue;
 
   // Grab the end of the queue
   var currentNode = queue[queue.length-1];
   // Get the grid
-  var currentGrid = currentNode.grid;
+  if(!(currentNode === 'undefined')) {
+    var currentGrid = currentNode.grid;
 
-  if(currentGrid.isWin()) {
-    console.log("WIN FOUND");
-    return queue;
-  }
-  if(currentGrid.isGameOver()) {
-    console.log("GAME OVER FOUND");
-    // Pop the last element in the queue, try again
-    queue.pop();
-    return this.recursiveBackTrack(queue,step);
-  }
-
-  // Apply a random move by the computer but add it to the queue
-  if(currentGrid.cellsAvailable()) {
-    var randomTile = currentGrid.addRandomTile();
-    currentGrid.removeTile(randomTile);
-    queue.push({ turn: "computer" , tile: randomTile , grid: currentGrid.clone() });
-  }
-
-  var moveScores = [];
-
-  for(var direction in [0,1,2,3]) {
-    // Clone the grid
-    var cloneG = this.grid.clone();
-
-    // Make the move
-    if (cloneG.move(direction).moved) {
-      moveScores.push({ move: direction , score: cloneG.eval() });
+    if(currentGrid.isWin()) {
+      console.log("WIN FOUND");
+      return queue;
     }
-  }
-
-  var bestMove = -1;
-  var bestScore = 0;
-  for(var i in moveScores) {
-    if(moveScores[i].score >= bestScore) {
-      bestMove = i;
+    if(currentGrid.isGameOver()) {
+      console.log("GAME OVER FOUND");
+      queue.pop();
+      return queue;
     }
+
+    // Apply a random move by the computer but add it to the queue
+    if(currentGrid.cellsAvailable()) {
+      var randomTile = currentGrid.addRandomTile();
+      currentGrid.removeTile(randomTile);
+      queue.push({ turn: "computer" , tile: randomTile , grid: currentGrid.clone() });
+    }
+
+    var moveScores = [];
+
+    for(var direction in [0,1,2,3]) {
+      // Clone the grid
+      var cloneG = this.grid.clone();
+
+      // Make the move
+      if (cloneG.move(direction).moved) {
+        moveScores.push({ move: direction , score: cloneG.eval() , grid: cloneG.clone() });
+      }
+    }
+
+    do {
+
+      var bestMove = -1;
+      var bestScore = 0;
+      for(var i in moveScores) {
+        if(moveScores[i].score >= bestScore) {
+          bestMove = i;
+          moveScores.splice(i,1);
+        }
+      }
+
+      queue.push({ turn: "player" , move: bestMove , grid: this.grid.clone() });
+
+      // console.log(queue);
+      return this.recursiveBackTrack(queue,step);
+
+    }while(moveScores.length >= 0);
   }
 
-  queue.push({ turn: "player" , move: bestMove , grid: this.grid.clone() });
-
-  // console.log(queue);
-  return this.recursiveBackTrack(queue,step);
+  return queue;
 }
