@@ -6,10 +6,8 @@ See my new AI for this game here --> [2048AI](https://github.com/sirenity/2048)
 
 This fork is focused on the implementation of several AI methods geared towards effectively teaching these various methods. Below is a list of the AI methods I plan to implement:
 
-    1. A* Search
-    2. Alpha-Beta Pruning
-    3. Stochastic Hill Climbing
-    4. Greedy Search
+    1. IDA* Search
+    2. Backtracking Search
 
 I advise the community to help with implementing more AI programs and perhaps involving their own kinds of heuristics to help generate new methodologies for Game Theory.
 
