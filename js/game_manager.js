@@ -110,7 +110,7 @@ GameManager.prototype.run = function() {
 
     if(this.grid.isGameOver()) {
       this.gameOverCount++;
-      if(this.gameOverCount == 8) {
+      if(this.gameOverCount == 20) {
         this.setup();
         this.gameOverCount = 0;
       }
